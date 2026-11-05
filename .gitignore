@@ -1,0 +1,30 @@
+# Bundler
+/.bundle
+/vendor/bundle
+
+# Logs, temporales y almacenamiento local
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+/storage/*
+!/storage/.keep
+/public/assets
+/coverage
+
+# Secretos: nunca se versionan (config/master.key descifra credentials.yml.enc)
+/config/*.key
+.env*
+!.env.example
+
+# Editores / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
