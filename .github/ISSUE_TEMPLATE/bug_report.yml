@@ -1,0 +1,21 @@
+name: Reporte de error
+description: Algo no funciona como se espera
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: ¿Qué pasó?
+      description: Comportamiento observado y esperado.
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options: [Interfaz web, API REST, Acuerdos de pago, Gestiones, Otro]
+    validations: { required: true }
