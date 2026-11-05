@@ -1,0 +1,64 @@
+<%= page_title "Integraciones API", subtitle: "Tokens para que sistemas externos (por ejemplo bots RPA) consulten la cartera y registren gestiones" %>
+
+<% if @created %>
+  <section class="card card--highlight" data-controller="clipboard">
+    <h2>Token creado: cópialo ahora</h2>
+    <p>Por seguridad solo se muestra una vez; en la base de datos se guarda únicamente su huella SHA-256.</p>
+    <div class="copy">
+      <code data-clipboard-target="source"><%= @api_token.plain_token %></code>
+      <button type="button" class="btn btn--primary btn--sm" data-action="clipboard#copy" data-clipboard-target="button">Copiar</button>
+    </div>
+  </section>
+<% end %>
+
+<div class="grid grid--2 grid--align-start">
+  <section class="card">
+    <header class="card__header"><h2>Nuevo token</h2></header>
+    <%= form_with model: @created ? current_user.api_tokens.build : @api_token, class: "form" do |form| %>
+      <%= render "shared/form_errors", record: @api_token unless @created %>
+      <div class="field">
+        <%= form.label :name %>
+        <%= form.text_field :name, placeholder: "Bot de acuerdos de pago (producción)", required: true %>
+      </div>
+      <div class="form__actions"><%= form.submit "Crear token", class: "btn btn--primary" %></div>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <header class="card__header"><h2>Uso</h2></header>
+<pre class="code">curl -X POST <%= request.base_url %>/api/v1/collection_activities \
+  -H "Authorization: Bearer crm_…" \
+  -H "Content-Type: application/json" \
+  -d '{"obligation_number": "OB-0000001",
+       "channel": "call", "outcome": "promise_to_pay",
+       "promise_date": "<%= 3.days.from_now.to_date.iso8601 %>", "promise_amount": 350000}'</pre>
+    <p class="hint">Documentación completa en <code>docs/api.md</code> y <code>docs/openapi.yaml</code> del repositorio.</p>
+  </section>
+</div>
+
+<section class="card">
+  <header class="card__header"><h2>Mis tokens</h2></header>
+  <% if @api_tokens.any? { |token| token.persisted? } %>
+    <table class="table">
+      <thead><tr><th>Nombre</th><th>Creado</th><th>Último uso</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+      <tbody>
+        <% @api_tokens.select(&:persisted?).each do |token| %>
+          <tr>
+            <td class="strong"><%= token.name %></td>
+            <td><%= l(token.created_at, format: :short) %></td>
+            <td><%= token.last_used_at ? l(token.last_used_at, format: :short) : "Nunca" %></td>
+            <td><%= token.revoked_at ? badge("Revocado", "muted") : badge("Activo", "ok") %></td>
+            <td class="num">
+              <% unless token.revoked_at %>
+                <%= button_to "Revocar", api_token_path(token), method: :delete, class: "btn btn--ghost btn--sm",
+                      form: { data: { turbo_confirm: "¿Revocar el token «#{token.name}»? Las integraciones que lo usen dejarán de funcionar." } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="empty">Aún no has creado tokens.</p>
+  <% end %>
+</section>
