@@ -1,0 +1,65 @@
+# Despliegue con Kamal 2 (contenedores Docker en un servidor Linux con TLS automático).
+# Guía completa: docs/deployment.md
+#
+#   kamal setup      # primera vez: instala Docker, kamal-proxy, PostgreSQL y la app
+#   kamal deploy     # despliegues siguientes (cero downtime)
+#   kamal app logs -f
+
+service: cartera_crm
+image: darwinmontiel/cartera-crm
+
+servers:
+  web:
+    - 203.0.113.10          # IP de documentación (RFC 5737): reemplazar por la del servidor
+  job:
+    hosts:
+      - 203.0.113.10
+    cmd: bin/jobs           # Solid Queue en un contenedor dedicado
+
+proxy:
+  ssl: true                 # certificado Let's Encrypt automático
+  host: crm.example.com
+  healthcheck:
+    path: /up
+
+registry:
+  server: ghcr.io
+  username: DarwinMontiel
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - CARTERA_CRM_DATABASE_PASSWORD
+  clear:
+    DB_HOST: cartera_crm-db
+    RAILS_LOG_TO_STDOUT: true
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+
+volumes:
+  - "cartera_crm_storage:/rails/storage"
+
+asset_path: /rails/public/assets
+
+builder:
+  arch: amd64
+
+accessories:
+  db:
+    image: postgres:16
+    host: 203.0.113.10
+    port: "127.0.0.1:5432:5432"   # solo accesible desde el propio servidor
+    env:
+      clear:
+        POSTGRES_USER: cartera_crm
+        POSTGRES_DB: cartera_crm_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
