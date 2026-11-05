@@ -1,0 +1,214 @@
+openapi: 3.1.0
+info:
+  title: Cartera CRM API
+  version: "1.0.0"
+  description: >
+    API REST para integraciones de cobranza: consulta de clientes y obligaciones, registro de
+    gestiones y de acuerdos de pago idempotentes.
+  contact:
+    name: Darwin Montiel Mora
+    url: https://github.com/DarwinMontiel/cartera-crm
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Desarrollo
+security:
+  - bearerAuth: []
+
+paths:
+  /clients:
+    get:
+      summary: Buscar clientes
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: "Nombre o prefijo del documento" }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/perPage"
+      responses:
+        "200":
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Client" } }
+                  meta: { $ref: "#/components/schemas/PageMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /clients/{document_number}:
+    get:
+      summary: Cliente con sus obligaciones
+      parameters:
+        - { name: document_number, in: path, required: true, schema: { type: string, pattern: "^[0-9]{6,10}$" } }
+      responses:
+        "200":
+          description: Cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Client"
+                      - type: object
+                        properties:
+                          obligations: { type: array, items: { $ref: "#/components/schemas/Obligation" } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /obligations:
+    get:
+      summary: Listar obligaciones
+      parameters:
+        - { name: bucket, in: query, schema: { type: string, enum: ["Al día", "1-30", "31-60", "61-90", "91-180", ">180"] } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ObligationStatus" } }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/perPage"
+      responses:
+        "200":
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Obligation" } }
+                  meta: { $ref: "#/components/schemas/PageMeta" }
+
+  /obligations/{number}:
+    get:
+      summary: Obligación con cliente y acuerdo vigente
+      parameters:
+        - { name: number, in: path, required: true, schema: { type: string, example: OB-0000001 } }
+      responses:
+        "200": { description: Obligación }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /collection_activities:
+    post:
+      summary: Registrar una gestión de cobro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [obligation_number, channel, outcome]
+              properties:
+                obligation_number: { type: string, example: OB-0000001 }
+                channel: { type: string, enum: [call, whatsapp, visit, email, sms] }
+                outcome:
+                  type: string
+                  enum: [no_answer, voicemail, wrong_number, contact_holder, contact_third_party, refused, promise_to_pay]
+                occurred_at: { type: string, format: date-time, description: "Por defecto, ahora" }
+                promise_date: { type: string, format: date, description: "Obligatoria si outcome = promise_to_pay" }
+                promise_amount: { type: number, description: "Obligatorio si outcome = promise_to_pay" }
+                notes: { type: string, maxLength: 2000 }
+      responses:
+        "201": { description: Gestión registrada }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+
+  /payment_agreements:
+    post:
+      summary: Registrar un acuerdo de pago (idempotente por reference)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [obligation_number, total_amount, installments]
+              properties:
+                obligation_number: { type: string }
+                reference: { type: string, maxLength: 64, description: "Clave de idempotencia del integrador" }
+                total_amount: { type: number }
+                notes: { type: string }
+                installments:
+                  type: array
+                  minItems: 1
+                  maxItems: 36
+                  items:
+                    type: object
+                    required: [number, due_on, amount]
+                    properties:
+                      number: { type: integer, minimum: 1 }
+                      due_on: { type: string, format: date, description: "Día hábil en Colombia" }
+                      amount: { type: number, exclusiveMinimum: 0 }
+      responses:
+        "201": { description: Acuerdo creado }
+        "200": { description: "Ya existía un acuerdo con esa reference: se devuelve sin duplicar" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+
+  /payment_agreements/{reference}:
+    get:
+      summary: Consultar un acuerdo y sus cuotas
+      parameters:
+        - { name: reference, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Acuerdo }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, description: "Token crm_… creado en Integraciones API" }
+  parameters:
+    page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    perPage: { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+  schemas:
+    PageMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        pages: { type: integer }
+    ObligationStatus:
+      type: string
+      enum: [current, delinquent, in_agreement, paid_off, charged_off]
+    Client:
+      type: object
+      properties:
+        document_number: { type: string }
+        full_name: { type: string }
+        email: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+        city: { type: string }
+        segment: { type: string, enum: [masivo, preferente, pyme] }
+        updated_at: { type: string, format: date-time }
+    Obligation:
+      type: object
+      properties:
+        number: { type: string }
+        product: { type: string, enum: [credit_card, personal_loan, microcredit, vehicle] }
+        principal_balance: { type: string, description: "Decimal como string" }
+        days_past_due: { type: integer }
+        bucket: { type: string }
+        status: { $ref: "#/components/schemas/ObligationStatus" }
+        disbursed_on: { type: string, format: date }
+        client_document_number: { type: string }
+        active_agreement_reference: { type: [string, "null"] }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object, additionalProperties: { type: array, items: { type: string } } }
+  responses:
+    Unauthorized:
+      description: Token ausente, inválido o revocado
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: Recurso no encontrado
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    BadRequest:
+      description: Falta un parámetro obligatorio
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    ValidationFailed:
+      description: Datos inválidos o regla de negocio incumplida
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
