@@ -1,0 +1,26 @@
+laura_card:
+  client: laura
+  number: OB-0000001
+  product: credit_card
+  principal_balance: 2450000
+  days_past_due: 45
+  status: delinquent
+  disbursed_on: 2024-03-10
+
+laura_loan:
+  client: laura
+  number: OB-0000002
+  product: personal_loan
+  principal_balance: 8000000
+  days_past_due: 0
+  status: current
+  disbursed_on: 2025-01-15
+
+andres_micro:
+  client: andres
+  number: OB-0000003
+  product: microcredit
+  principal_balance: 1000000
+  days_past_due: 120
+  status: in_agreement
+  disbursed_on: 2024-06-01

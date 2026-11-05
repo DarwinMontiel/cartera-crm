@@ -1,0 +1,17 @@
+laura_no_answer:
+  obligation: laura_card
+  user: agent
+  channel: call
+  outcome: no_answer
+  occurred_at: <%= 2.days.ago.to_fs(:db) %>
+  source: web
+
+laura_promise:
+  obligation: laura_card
+  user: agent
+  channel: whatsapp
+  outcome: promise_to_pay
+  occurred_at: <%= 1.hour.ago.to_fs(:db) %>
+  promise_date: <%= 3.days.from_now.to_date.to_fs(:db) %>
+  promise_amount: 500000
+  source: api

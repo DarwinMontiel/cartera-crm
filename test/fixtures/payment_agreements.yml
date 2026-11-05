@@ -1,0 +1,6 @@
+andres_active:
+  obligation: andres_micro
+  user: agent
+  status: active
+  total_amount: 900000
+  reference: AC-ANDRES0001

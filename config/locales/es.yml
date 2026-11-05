@@ -1,0 +1,172 @@
+es:
+  app:
+    name: "Cartera CRM"
+    tagline: "Gestión de cobranza"
+  nav:
+    dashboard: "Tablero"
+    clients: "Clientes"
+    work_queue: "Bandeja de cobro"
+    agreements: "Acuerdos de pago"
+    api_tokens: "Integraciones API"
+    sign_out: "Cerrar sesión"
+
+  number:
+    currency:
+      format:
+        unit: "$"
+        format: "%u %n"
+        delimiter: "."
+        separator: ","
+        precision: 0
+
+  activerecord:
+    models:
+      client:
+        one: "Cliente"
+        other: "Clientes"
+      obligation:
+        one: "Obligación"
+        other: "Obligaciones"
+      collection_activity:
+        one: "Gestión"
+        other: "Gestiones"
+      payment_agreement:
+        one: "Acuerdo de pago"
+        other: "Acuerdos de pago"
+      installment:
+        one: "Cuota"
+        other: "Cuotas"
+      api_token:
+        one: "Token de API"
+        other: "Tokens de API"
+      user:
+        one: "Usuario"
+        other: "Usuarios"
+    attributes:
+      user:
+        name: "Nombre"
+        email_address: "Correo"
+        password: "Contraseña"
+        role: "Rol"
+        roles:
+          admin: "Administrador"
+          agent: "Gestor"
+      client:
+        document_number: "Documento"
+        full_name: "Nombre completo"
+        email: "Correo"
+        phone: "Teléfono"
+        city: "Ciudad"
+        segment: "Segmento"
+        segments:
+          masivo: "Masivo"
+          preferente: "Preferente"
+          pyme: "PyME"
+      obligation:
+        number: "Número"
+        product: "Producto"
+        principal_balance: "Saldo de capital"
+        days_past_due: "Días de mora"
+        status: "Estado"
+        disbursed_on: "Desembolso"
+        client: "Cliente"
+        products:
+          credit_card: "Tarjeta de crédito"
+          personal_loan: "Libre inversión"
+          microcredit: "Microcrédito"
+          vehicle: "Vehículo"
+        statuses:
+          current: "Al día"
+          delinquent: "En mora"
+          in_agreement: "En acuerdo"
+          paid_off: "Cancelada"
+          charged_off: "Castigada"
+      collection_activity:
+        channel: "Canal"
+        outcome: "Resultado"
+        notes: "Observaciones"
+        occurred_at: "Fecha y hora"
+        promise_date: "Fecha de la promesa"
+        promise_amount: "Valor prometido"
+        source: "Origen"
+        user: "Gestor"
+        channels:
+          call: "Llamada"
+          whatsapp: "WhatsApp"
+          visit: "Visita"
+          email: "Correo"
+          sms: "SMS"
+        outcomes:
+          no_answer: "No contesta"
+          voicemail: "Buzón de voz"
+          wrong_number: "Número errado"
+          contact_holder: "Contacto con titular"
+          contact_third_party: "Contacto con tercero"
+          refused: "Rehúsa pago"
+          promise_to_pay: "Promesa de pago"
+        sources:
+          web: "CRM"
+          api: "API / bot"
+      payment_agreement:
+        reference: "Referencia"
+        total_amount: "Valor total"
+        status: "Estado"
+        notes: "Observaciones"
+        installments: "Cuotas"
+        obligation: "Obligación"
+        user: "Registrado por"
+        statuses:
+          active: "Vigente"
+          fulfilled: "Cumplido"
+          broken: "Incumplido"
+          cancelled: "Anulado"
+      installment:
+        number: "N.º"
+        due_on: "Vencimiento"
+        amount: "Valor"
+        paid_at: "Pagada"
+      api_token:
+        name: "Nombre"
+        last_used_at: "Último uso"
+        created_at: "Creado"
+    errors:
+      models:
+        collection_activity:
+          attributes:
+            occurred_at:
+              in_the_future: "no puede estar en el futuro"
+            promise_date:
+              before_activity: "no puede ser anterior a la gestión"
+              too_far: "no puede superar 30 días desde la gestión"
+        payment_agreement:
+          attributes:
+            installments:
+              count_out_of_range: "deben ser entre 1 y %{max}"
+              first_due_in_past: "la primera cuota no puede vencer en el pasado"
+              dates_not_increasing: "deben tener fechas de vencimiento crecientes"
+              non_business_days: "caen en días no hábiles: %{dates}"
+            total_amount:
+              does_not_match_installments: "no coincide con la suma de las cuotas (%{sum})"
+              below_minimum_coverage: "debe cubrir al menos el %{percent} % del saldo de capital"
+              above_maximum_coverage: "no puede superar el %{percent} % del saldo de capital"
+            obligation:
+              already_has_active_agreement: "ya tiene un acuerdo de pago vigente"
+
+  buckets:
+    title: "Franja de mora"
+
+  flash:
+    clients:
+      created: "Cliente creado."
+      updated: "Cliente actualizado."
+    collection_activities:
+      created: "Gestión registrada."
+    payment_agreements:
+      created: "Acuerdo de pago registrado."
+    api_tokens:
+      revoked: "Token revocado."
+
+  pagination:
+    previous: "Anterior"
+    next: "Siguiente"
+    summary: "Página %{page} de %{pages} · %{count} registros"
