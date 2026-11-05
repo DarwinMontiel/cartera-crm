@@ -1,0 +1,14 @@
+<% content_for :title, "Recuperar contraseña" %>
+<section class="auth">
+  <div class="auth__card">
+    <h1>¿Olvidaste tu contraseña?</h1>
+    <%= form_with url: passwords_path, class: "form" do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "Correo" %>
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
+      </div>
+      <%= form.submit "Enviar instrucciones", class: "btn btn--primary btn--block" %>
+    <% end %>
+    <p class="auth__links"><%= link_to "Volver a iniciar sesión", new_session_path %></p>
+  </div>
+</section>

@@ -1,0 +1,26 @@
+<% content_for :title, "Iniciar sesión · #{t("app.name")}" %>
+<section class="auth">
+  <div class="auth__card">
+    <div class="auth__brand">
+      <span class="logo" aria-hidden="true">C</span>
+      <div><strong><%= t("app.name") %></strong><small><%= t("app.tagline") %></small></div>
+    </div>
+    <h1>Iniciar sesión</h1>
+    <%= form_with url: session_path, class: "form" do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "Correo" %>
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username",
+              placeholder: "nombre@empresa.com", value: params[:email_address] %>
+      </div>
+      <div class="field">
+        <%= form.label :password, "Contraseña" %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+      </div>
+      <%= form.submit "Ingresar", class: "btn btn--primary btn--block" %>
+    <% end %>
+    <p class="auth__links"><%= link_to "¿Olvidaste tu contraseña?", new_password_path %></p>
+    <% if Rails.env.development? %>
+      <p class="hint">Demo: <code>admin@cartera.test</code> · contraseña definida en <code>db/seeds.rb</code></p>
+    <% end %>
+  </div>
+</section>

@@ -1,0 +1,13 @@
+<% password_digest = BCrypt::Password.create("password-de-prueba") %>
+
+admin:
+  name: Administradora Uno
+  email_address: admin@example.com
+  password_digest: <%= password_digest %>
+  role: admin
+
+agent:
+  name: Gestor Dos
+  email_address: gestor@example.com
+  password_digest: <%= password_digest %>
+  role: agent
