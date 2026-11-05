@@ -1,0 +1,6 @@
+<ol class="timeline" id="activities">
+  <% activities.each do |activity| %>
+    <%= render "collection_activities/activity", activity:, show_obligation: %>
+  <% end %>
+  <li class="timeline__empty empty">Aún no hay gestiones registradas.</li>
+</ol>

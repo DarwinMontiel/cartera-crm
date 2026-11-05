@@ -1,0 +1,20 @@
+<%# Tabla de cuotas anidadas. Se usa en el formulario y en el Turbo Stream de "Generar plan". %>
+<div id="installments" class="installments">
+  <%= fields :payment_agreement, model: agreement do |form| %>
+    <table class="table table--compact">
+      <thead>
+        <tr><th class="num">N.º</th><th>Vencimiento</th><th class="num">Valor</th><th><span class="sr-only">Acciones</span></th></tr>
+      </thead>
+      <tbody data-nested-form-target="rows">
+        <%= form.fields_for :installments do |installment| %>
+          <%= render "payment_agreements/installment_fields", form: installment %>
+        <% end %>
+      </tbody>
+    </table>
+    <template data-nested-form-target="template">
+      <%= form.fields_for :installments, Installment.new, child_index: "NEW_RECORD" do |installment| %>
+        <%= render "payment_agreements/installment_fields", form: installment %>
+      <% end %>
+    </template>
+  <% end %>
+</div>

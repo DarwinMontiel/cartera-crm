@@ -1,0 +1,82 @@
+<%= page_title "Tablero", subtitle: "Estado de la cartera y la gestión de hoy · #{l(Date.current, format: :long)}" %>
+
+<section class="kpis" aria-label="Indicadores">
+  <article class="kpi">
+    <h2>Saldo de cartera</h2>
+    <p><%= money(@summary.total_balance) %></p>
+    <small><%= number_with_delimiter(@summary.obligations, delimiter: ".") %> obligaciones vigentes</small>
+  </article>
+  <article class="kpi">
+    <h2>Saldo vencido</h2>
+    <p><%= money(@summary.past_due_balance) %></p>
+    <small><%= @summary.past_due_count %> obligaciones en mora</small>
+  </article>
+  <article class="kpi">
+    <h2>PAR30</h2>
+    <p><%= percent(@summary.par30) %></p>
+    <small>saldo con más de 30 días de mora</small>
+  </article>
+  <article class="kpi">
+    <h2>Gestiones de hoy</h2>
+    <p><%= @summary.activities_today %></p>
+    <small>contactabilidad <%= percent(@summary.contact_rate_today) %></small>
+  </article>
+  <article class="kpi">
+    <h2>Acuerdos vigentes</h2>
+    <p><%= @summary.active_agreements %></p>
+    <small><%= @summary.installments_due_week %> cuotas vencen esta semana</small>
+  </article>
+  <article class="kpi">
+    <h2>Promesas pendientes</h2>
+    <p><%= @summary.pending_promises %></p>
+    <small>con fecha de hoy en adelante</small>
+  </article>
+</section>
+
+<div class="grid grid--2">
+  <section class="card">
+    <header class="card__header"><h2>Saldo por franja de mora</h2></header>
+    <% max = @balance_by_bucket.values.max.to_d %>
+    <ul class="bars">
+      <% @balance_by_bucket.each do |bucket, balance| %>
+        <li>
+          <%= link_to bucket, bucket == "Al día" ? clients_path : obligations_path(bucket:), class: "bars__label" %>
+          <span class="bars__track"><span class="bars__fill bars__fill--<%= ApplicationHelper::BUCKET_TONES[bucket] %>" style="width: <%= max.zero? ? 0 : (balance / max * 100).round(1) %>%"></span></span>
+          <span class="bars__value"><%= money(balance) %></span>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+
+  <section class="card">
+    <header class="card__header">
+      <h2>Próximas cuotas de acuerdos</h2>
+      <%= link_to "Ver acuerdos", payment_agreements_path, class: "link" %>
+    </header>
+    <% if @upcoming_installments.any? %>
+      <table class="table">
+        <thead><tr><th>Vence</th><th>Cliente</th><th class="num">Valor</th></tr></thead>
+        <tbody>
+          <% @upcoming_installments.each do |installment| %>
+            <% agreement = installment.payment_agreement %>
+            <tr>
+              <td><%= l(installment.due_on, format: :short) %></td>
+              <td><%= link_to agreement.obligation.client.full_name, payment_agreement_path(agreement) %></td>
+              <td class="num"><%= money(installment.amount) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="empty">No hay cuotas por vencer en los próximos 14 días.</p>
+    <% end %>
+  </section>
+</div>
+
+<section class="card">
+  <header class="card__header">
+    <h2>Últimas gestiones</h2>
+    <%= link_to "Ir a la bandeja de cobro", obligations_path, class: "link" %>
+  </header>
+  <%= render "collection_activities/timeline", activities: @recent_activities, show_obligation: true %>
+</section>

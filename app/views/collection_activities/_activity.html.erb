@@ -1,0 +1,18 @@
+<li class="timeline__item timeline__item--<%= activity.contact? ? "contact" : "no-contact" %>" id="<%= dom_id(activity) %>">
+  <div class="timeline__meta">
+    <time datetime="<%= activity.occurred_at.iso8601 %>"><%= l(activity.occurred_at, format: :short) %></time>
+    · <%= enum_label(CollectionActivity, :channel, activity.channel) %>
+    · <%= activity.user.name %>
+    <% if activity.from_api? %><%= badge("bot / API", "info") %><% end %>
+  </div>
+  <div class="timeline__body">
+    <strong><%= enum_label(CollectionActivity, :outcome, activity.outcome) %></strong>
+    <% if activity.promise_to_pay? %>
+      — promete <strong><%= money(activity.promise_amount) %></strong> para el <%= l(activity.promise_date) %>
+    <% end %>
+    <% if show_obligation %>
+      · <%= link_to "#{activity.obligation.number} · #{activity.obligation.client.full_name}", activity.obligation %>
+    <% end %>
+    <% if activity.notes.present? %><p><%= activity.notes %></p><% end %>
+  </div>
+</li>

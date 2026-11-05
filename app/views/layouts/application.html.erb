@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= content_for(:title) || t("app.name") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="application-name" content="<%= t("app.name") %>">
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="<%= authenticated? ? "app" : "app app--public" %>">
+    <% if authenticated? %>
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <span class="logo" aria-hidden="true">C</span>
+          <div>
+            <strong><%= t("app.name") %></strong>
+            <small><%= t("app.tagline") %></small>
+          </div>
+        </div>
+        <nav class="nav" aria-label="Principal">
+          <%= nav_link t("nav.dashboard"), root_path, icon: "◧" %>
+          <%= nav_link t("nav.work_queue"), obligations_path, icon: "☰" %>
+          <%= nav_link t("nav.clients"), clients_path, icon: "◉" %>
+          <%= nav_link t("nav.agreements"), payment_agreements_path, icon: "✓" %>
+          <%= nav_link t("nav.api_tokens"), api_tokens_path, icon: "⌁" %>
+        </nav>
+        <div class="sidebar__user">
+          <span class="avatar"><%= current_user.initials %></span>
+          <div>
+            <strong><%= current_user.name %></strong>
+            <small><%= enum_label(User, :role, current_user.role) %></small>
+          </div>
+          <%= button_to t("nav.sign_out"), session_path, method: :delete, class: "btn btn--ghost btn--sm",
+                form: { data: { turbo_confirm: "¿Cerrar sesión?" } } %>
+        </div>
+      </aside>
+    <% end %>
+
+    <main class="main" id="main">
+      <div class="flash-stack" id="flash">
+        <% flash.each do |type, message| %>
+          <div class="flash flash--<%= type == "alert" ? "danger" : "ok" %>" role="status"
+               data-controller="flash" data-action="click->flash#dismiss"><%= message %></div>
+        <% end %>
+      </div>
+      <%= yield %>
+    </main>
+  </body>
+</html>

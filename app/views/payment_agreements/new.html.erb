@@ -1,0 +1,53 @@
+<%= page_title "Nuevo acuerdo de pago",
+      subtitle: "#{@obligation.number} · #{@obligation.client.full_name} · saldo #{money(@obligation.principal_balance)}" %>
+
+<section class="card">
+  <%= form_with model: @agreement, url: obligation_payment_agreements_path(@obligation), class: "form",
+        data: { controller: "nested-form agreement-total", action: "input->agreement-total#recalculate" } do |form| %>
+    <%= render "shared/form_errors", record: @agreement %>
+
+    <div class="form__grid">
+      <div class="field">
+        <%= form.label :total_amount %>
+        <%= form.number_field :total_amount, value: @agreement.total_amount&.to_i, min: 1, step: 1, required: true, inputmode: "numeric",
+              data: { agreement_total_target: "total" } %>
+        <small>Política: entre <%= money(@obligation.minimum_agreement_amount) %> (60 %) y
+          <%= money(@obligation.principal_balance * PaymentAgreement::MAX_COVERAGE) %> (150 %) del saldo.</small>
+      </div>
+      <div class="field">
+        <%= label_tag :plan_count, "Número de cuotas" %>
+        <%= number_field_tag :plan_count, @agreement.installments.size, min: 1, max: PaymentAgreement::MAX_INSTALLMENTS %>
+      </div>
+      <div class="field">
+        <%= label_tag :plan_first_due_on, "Primer vencimiento" %>
+        <%= date_field_tag :plan_first_due_on, @agreement.installments.first&.due_on, min: Date.current %>
+      </div>
+      <div class="field field--action">
+        <%= form.button "Generar plan", type: "submit", class: "btn btn--ghost",
+              formaction: plan_obligation_payment_agreements_path(@obligation), formnovalidate: true,
+              data: { turbo_submits_with: "Calculando…" } %>
+        <small>Cuotas iguales; las fechas en fin de semana o festivo pasan al siguiente día hábil.</small>
+      </div>
+    </div>
+
+    <%= render "payment_agreements/installments", agreement: @agreement %>
+
+    <div class="installments__footer">
+      <button type="button" class="btn btn--ghost btn--sm" data-action="nested-form#add agreement-total#recalculate">+ Agregar cuota</button>
+      <p class="installments__sum" aria-live="polite">
+        Suma de cuotas: <strong data-agreement-total-target="sum">–</strong>
+        <span data-agreement-total-target="difference"></span>
+      </p>
+    </div>
+
+    <div class="field">
+      <%= form.label :notes %>
+      <%= form.text_area :notes, rows: 2 %>
+    </div>
+
+    <div class="form__actions">
+      <%= form.submit "Registrar acuerdo", class: "btn btn--primary", data: { turbo_submits_with: "Registrando…" } %>
+      <%= link_to "Cancelar", obligation_path(@obligation), class: "btn btn--ghost" %>
+    </div>
+  <% end %>
+</section>

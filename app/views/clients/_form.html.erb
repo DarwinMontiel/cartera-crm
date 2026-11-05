@@ -1,0 +1,34 @@
+<%= form_with model: client, class: "form" do |form| %>
+  <%= render "shared/form_errors", record: client %>
+  <div class="form__grid">
+    <div class="field">
+      <%= form.label :document_number %>
+      <%= form.text_field :document_number, inputmode: "numeric", required: true, placeholder: "1012345678" %>
+      <small>Sin puntos ni espacios; se normaliza automáticamente.</small>
+    </div>
+    <div class="field">
+      <%= form.label :full_name %>
+      <%= form.text_field :full_name, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :email %>
+      <%= form.email_field :email %>
+    </div>
+    <div class="field">
+      <%= form.label :phone %>
+      <%= form.telephone_field :phone, placeholder: "3001234567" %>
+    </div>
+    <div class="field">
+      <%= form.label :city %>
+      <%= form.select :city, Client::CITIES, include_blank: "Selecciona…" %>
+    </div>
+    <div class="field">
+      <%= form.label :segment %>
+      <%= form.select :segment, enum_options(Client, :segment) %>
+    </div>
+  </div>
+  <div class="form__actions">
+    <%= form.submit "Guardar", class: "btn btn--primary" %>
+    <%= link_to "Cancelar", client.persisted? ? client_path(client) : clients_path, class: "btn btn--ghost" %>
+  </div>
+<% end %>

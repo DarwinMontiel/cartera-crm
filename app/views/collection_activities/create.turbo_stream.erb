@@ -1,0 +1,7 @@
+<%= turbo_stream.prepend "activities", partial: "collection_activities/activity",
+      locals: { activity: @activity, show_obligation: false } %>
+<%= turbo_stream.replace "activity_form", partial: "collection_activities/form",
+      locals: { obligation: @obligation, activity: @obligation.collection_activities.build } %>
+<%= turbo_stream.update "flash" do %>
+  <div class="flash flash--ok" role="status" data-controller="flash" data-action="click->flash#dismiss"><%= t("flash.collection_activities.created") %></div>
+<% end %>

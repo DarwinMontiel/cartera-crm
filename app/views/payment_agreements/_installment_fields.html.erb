@@ -1,0 +1,16 @@
+<tr class="installment-row" data-nested-form-target="row">
+  <td class="num">
+    <%= form.hidden_field :number, data: { nested_form_target: "number" } %>
+    <span class="mono" data-nested-form-target="label"><%= form.object.number %></span>
+  </td>
+  <td><%= form.date_field :due_on, required: true, aria: { label: "Fecha de vencimiento" } %></td>
+  <td class="num">
+    <%= form.number_field :amount, value: form.object.amount&.to_i, min: 1, step: 1, required: true, inputmode: "numeric",
+          aria: { label: "Valor de la cuota" }, data: { agreement_total_target: "amount" } %>
+  </td>
+  <td>
+    <%= form.hidden_field :_destroy, data: { nested_form_target: "destroy" } %>
+    <button type="button" class="btn btn--ghost btn--sm" data-action="nested-form#remove agreement-total#recalculate"
+            aria-label="Eliminar cuota">✕</button>
+  </td>
+</tr>

@@ -1,0 +1,35 @@
+<%= page_title "Acuerdos de pago" %>
+
+<nav class="chips" aria-label="Filtrar por estado">
+  <% PaymentAgreement.statuses.each_key do |status| %>
+    <%= link_to enum_label(PaymentAgreement, :status, status), payment_agreements_path(status:),
+          class: [ "chip", { "chip--active": @status == status } ] %>
+  <% end %>
+</nav>
+
+<section class="card">
+  <% if @pagination.records.any? %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Referencia</th><th>Cliente</th><th>Obligación</th><th class="num">Cuotas</th><th class="num">Total</th><th>Próximo vencimiento</th></tr>
+        </thead>
+        <tbody>
+          <% @pagination.records.each do |agreement| %>
+            <tr>
+              <td><%= link_to agreement.reference, payment_agreement_path(agreement), class: "mono strong" %></td>
+              <td><%= agreement.obligation.client.full_name %></td>
+              <td><%= link_to agreement.obligation.number, obligation_path(agreement.obligation), class: "mono" %></td>
+              <td class="num"><%= agreement.installments.size %></td>
+              <td class="num"><%= money(agreement.total_amount) %></td>
+              <td><%= (next_installment = agreement.next_installment) ? l(next_installment.due_on, format: :short) : "–" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagination", pagination: @pagination %>
+  <% else %>
+    <p class="empty">No hay acuerdos en este estado.</p>
+  <% end %>
+</section>

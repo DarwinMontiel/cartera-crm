@@ -1,0 +1,30 @@
+<%= form_with model: [ obligation, activity ], id: "activity_form", class: "form",
+      data: { controller: "promise-fields" } do |form| %>
+  <%= render "shared/form_errors", record: activity %>
+  <div class="form__grid">
+    <div class="field">
+      <%= form.label :channel %>
+      <%= form.select :channel, enum_options(CollectionActivity, :channel), { include_blank: "Selecciona…" }, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :outcome %>
+      <%= form.select :outcome, enum_options(CollectionActivity, :outcome), { include_blank: "Selecciona…" },
+            required: true, data: { promise_fields_target: "outcome", action: "promise-fields#toggle" } %>
+    </div>
+    <div class="field" data-promise-fields-target="field">
+      <%= form.label :promise_date %>
+      <%= form.date_field :promise_date, min: Date.current, max: 30.days.from_now.to_date %>
+    </div>
+    <div class="field" data-promise-fields-target="field">
+      <%= form.label :promise_amount %>
+      <%= form.number_field :promise_amount, min: 1, step: 1, inputmode: "numeric" %>
+    </div>
+  </div>
+  <div class="field">
+    <%= form.label :notes %>
+    <%= form.text_area :notes, rows: 3, placeholder: "Resumen de la conversación, compromisos, datos de contacto actualizados…" %>
+  </div>
+  <div class="form__actions">
+    <%= form.submit "Registrar gestión", class: "btn btn--primary", data: { turbo_submits_with: "Guardando…" } %>
+  </div>
+<% end %>

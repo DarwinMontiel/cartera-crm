@@ -1,0 +1,33 @@
+<%= page_title @client.full_name, subtitle: "Documento #{@client.document_number} · #{@client.city} · #{enum_label(Client, :segment, @client.segment)}" do %>
+  <%= link_to "Editar", edit_client_path(@client), class: "btn btn--ghost" %>
+<% end %>
+
+<div class="grid grid--3">
+  <article class="kpi"><h2>Saldo total</h2><p><%= money(@obligations.sum(&:principal_balance)) %></p></article>
+  <article class="kpi"><h2>Saldo vencido</h2><p><%= money(@obligations.select(&:past_due?).sum(&:principal_balance)) %></p></article>
+  <article class="kpi"><h2>Contacto</h2><p class="kpi__text"><%= @client.phone || "Sin teléfono" %></p><small><%= @client.email || "Sin correo" %></small></article>
+</div>
+
+<section class="card">
+  <header class="card__header"><h2>Obligaciones</h2></header>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Número</th><th>Producto</th><th>Estado</th><th>Franja</th><th class="num">Días de mora</th><th class="num">Saldo</th><th>Acuerdo</th></tr>
+      </thead>
+      <tbody>
+        <% @obligations.each do |obligation| %>
+          <tr>
+            <td><%= link_to obligation.number, obligation, class: "mono strong" %></td>
+            <td><%= enum_label(Obligation, :product, obligation.product) %></td>
+            <td><%= status_badge(obligation) %></td>
+            <td><%= bucket_badge(obligation) %></td>
+            <td class="num"><%= obligation.days_past_due %></td>
+            <td class="num"><%= money(obligation.principal_balance) %></td>
+            <td><%= obligation.active_agreement ? link_to(obligation.active_agreement.reference, payment_agreement_path(obligation.active_agreement), class: "mono") : "–" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,36 @@
+<%= page_title "Bandeja de cobro", subtitle: "Obligaciones vencidas, de mayor a menor mora" %>
+
+<nav class="chips" aria-label="Filtrar por franja de mora">
+  <%= link_to "Todas", obligations_path, class: [ "chip", { "chip--active": @bucket.nil? } ] %>
+  <% Obligation::BUCKETS.keys.drop(1).each do |bucket| %>
+    <%= link_to bucket, obligations_path(bucket:), class: [ "chip", { "chip--active": @bucket == bucket } ] %>
+  <% end %>
+</nav>
+
+<section class="card">
+  <% if @pagination.records.any? %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Obligación</th><th>Cliente</th><th>Producto</th><th>Franja</th><th class="num">Días</th><th class="num">Saldo</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          <% @pagination.records.each do |obligation| %>
+            <tr>
+              <td><%= link_to obligation.number, obligation, class: "mono strong" %></td>
+              <td><%= link_to obligation.client.full_name, obligation.client %></td>
+              <td><%= enum_label(Obligation, :product, obligation.product) %></td>
+              <td><%= bucket_badge(obligation) %></td>
+              <td class="num"><%= obligation.days_past_due %></td>
+              <td class="num"><%= money(obligation.principal_balance) %></td>
+              <td><%= status_badge(obligation) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagination", pagination: @pagination %>
+  <% else %>
+    <p class="empty">No hay obligaciones vencidas en esta franja.</p>
+  <% end %>
+</section>

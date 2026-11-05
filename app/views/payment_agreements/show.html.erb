@@ -1,0 +1,51 @@
+<% obligation = @agreement.obligation %>
+<%= page_title "Acuerdo #{@agreement.reference}",
+      subtitle: "#{obligation.client.full_name} · obligación #{obligation.number} · registrado por #{@agreement.user.name}" do %>
+  <%= link_to "Ver obligación", obligation_path(obligation), class: "btn btn--ghost" %>
+<% end %>
+
+<% paid = @agreement.paid_amount %>
+<div class="grid grid--4">
+  <article class="kpi"><h2>Estado</h2><p class="kpi__text"><%= status_badge(@agreement) %></p></article>
+  <article class="kpi"><h2>Valor total</h2><p><%= money(@agreement.total_amount) %></p><small><%= @agreement.installments.size %> cuotas</small></article>
+  <article class="kpi">
+    <h2>Pagado</h2><p><%= money(paid) %></p>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= (paid / @agreement.total_amount * 100).round %>">
+      <span style="width: <%= (paid / @agreement.total_amount * 100).round(1) %>%"></span>
+    </div>
+  </article>
+  <article class="kpi">
+    <h2>Próxima cuota</h2>
+    <% if (next_installment = @agreement.next_installment) %>
+      <p><%= money(next_installment.amount) %></p><small>vence el <%= l(next_installment.due_on, format: :long) %></small>
+    <% else %>
+      <p class="kpi__text">Sin cuotas pendientes</p>
+    <% end %>
+  </article>
+</div>
+
+<section class="card">
+  <header class="card__header"><h2>Plan de pagos</h2></header>
+  <table class="table">
+    <thead><tr><th class="num">N.º</th><th>Vencimiento</th><th class="num">Valor</th><th>Estado</th></tr></thead>
+    <tbody>
+      <% @agreement.installments.each do |installment| %>
+        <tr>
+          <td class="num"><%= installment.number %></td>
+          <td><%= l(installment.due_on, format: :long) %></td>
+          <td class="num"><%= money(installment.amount) %></td>
+          <td>
+            <% if installment.paid? %>
+              <%= badge("Pagada #{l(installment.paid_at.to_date, format: :short)}", "ok") %>
+            <% elsif installment.overdue? %>
+              <%= badge("Vencida", "danger") %>
+            <% else %>
+              <%= badge("Pendiente", "muted") %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @agreement.notes.present? %><p class="notes"><%= @agreement.notes %></p><% end %>
+</section>

@@ -1,0 +1,65 @@
+<%= page_title "Obligación #{@obligation.number}",
+      subtitle: "#{enum_label(Obligation, :product, @obligation.product)} · desembolso #{l(@obligation.disbursed_on)}" do %>
+  <% if @obligation.active_agreement %>
+    <%= link_to "Ver acuerdo vigente", payment_agreement_path(@obligation.active_agreement), class: "btn btn--ghost" %>
+  <% elsif @obligation.past_due? %>
+    <%= link_to "Nuevo acuerdo de pago", new_obligation_payment_agreement_path(@obligation), class: "btn btn--primary" %>
+  <% end %>
+<% end %>
+
+<div class="grid grid--4">
+  <article class="kpi">
+    <h2>Cliente</h2>
+    <p class="kpi__text"><%= link_to @obligation.client.full_name, @obligation.client %></p>
+    <small>Doc. <%= @obligation.client.document_number %> · <%= @obligation.client.phone || "sin teléfono" %></small>
+  </article>
+  <article class="kpi">
+    <h2>Saldo de capital</h2>
+    <p><%= money(@obligation.principal_balance) %></p>
+    <small>Mínimo para acuerdo: <%= money(@obligation.minimum_agreement_amount) %></small>
+  </article>
+  <article class="kpi">
+    <h2>Mora</h2>
+    <p><%= @obligation.days_past_due %> días</p>
+    <small><%= bucket_badge(@obligation) %></small>
+  </article>
+  <article class="kpi">
+    <h2>Estado</h2>
+    <p class="kpi__text"><%= status_badge(@obligation) %></p>
+    <small><%= @activities.size %> gestiones registradas</small>
+  </article>
+</div>
+
+<div class="grid grid--2 grid--align-start">
+  <section class="card">
+    <header class="card__header"><h2>Registrar gestión</h2></header>
+    <%= render "collection_activities/form", obligation: @obligation, activity: @activity %>
+  </section>
+
+  <section class="card">
+    <header class="card__header"><h2>Historial de gestiones</h2></header>
+    <%= render "collection_activities/timeline", activities: @activities, show_obligation: false %>
+  </section>
+</div>
+
+<% if @agreements.any? %>
+  <section class="card">
+    <header class="card__header"><h2>Acuerdos de pago</h2></header>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Referencia</th><th>Estado</th><th class="num">Cuotas</th><th class="num">Total</th><th>Registrado</th></tr></thead>
+        <tbody>
+          <% @agreements.each do |agreement| %>
+            <tr>
+              <td><%= link_to agreement.reference, payment_agreement_path(agreement), class: "mono strong" %></td>
+              <td><%= status_badge(agreement) %></td>
+              <td class="num"><%= agreement.installments.size %></td>
+              <td class="num"><%= money(agreement.total_amount) %></td>
+              <td><%= l(agreement.created_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% end %>

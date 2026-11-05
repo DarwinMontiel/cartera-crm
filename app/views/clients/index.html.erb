@@ -1,0 +1,38 @@
+<%= page_title "Clientes", subtitle: "Busca por nombre o número de documento" do %>
+  <%= link_to "Nuevo cliente", new_client_path, class: "btn btn--primary" %>
+<% end %>
+
+<section class="card">
+  <%= form_with url: clients_path, method: :get, class: "search",
+        data: { controller: "debounce-submit", turbo_frame: "clients", turbo_action: "advance" } do |form| %>
+    <%= form.label :q, "Buscar cliente", class: "sr-only" %>
+    <%= form.search_field :q, value: @query, placeholder: "Ej.: Laura Gómez o 1012345678", autofocus: true,
+          autocomplete: "off", data: { action: "input->debounce-submit#submit" } %>
+  <% end %>
+
+  <%= turbo_frame_tag "clients", target: "_top" do %>
+    <% if @pagination.records.any? %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>Cliente</th><th>Documento</th><th>Ciudad</th><th>Segmento</th><th class="num">Obligaciones</th></tr>
+          </thead>
+          <tbody>
+            <% @pagination.records.includes(:obligations).each do |client| %>
+              <tr>
+                <td><%= link_to client.full_name, client, class: "strong" %></td>
+                <td class="mono"><%= client.document_number %></td>
+                <td><%= client.city %></td>
+                <td><%= enum_label(Client, :segment, client.segment) %></td>
+                <td class="num"><%= client.obligations.size %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <%= render "shared/pagination", pagination: @pagination %>
+    <% else %>
+      <p class="empty">No hay clientes que coincidan con «<%= @query %>».</p>
+    <% end %>
+  <% end %>
+</section>
